@@ -378,7 +378,7 @@ module Merb::RenderMixin
 
     # If a layout was provided, throw an error if it's not found
     if layout
-      type = layout.index(".") ? nil : content_type      
+      type = File.basename(layout).index(".") ? nil : content_type   
       
       # absolute path to a layout template
       template_method, template_location = if layout =~ %r{^/}
