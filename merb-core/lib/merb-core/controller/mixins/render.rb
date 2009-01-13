@@ -377,10 +377,17 @@ module Merb::RenderMixin
     layout = layout.to_s if layout
 
     # If a layout was provided, throw an error if it's not found
-    if layout      
-      template_method, template_location = 
-        _template_for(layout, layout.index(".") ? nil : content_type, "layout")
-        
+    if layout
+      type = layout.index(".") ? nil : content_type      
+      
+      # absolute path to a layout template
+      template_method, template_location = if layout =~ %r{^/}
+        template_location = self._absolute_template_location(layout, type)
+        [_template_method_for(template_location), template_location]
+      else
+        _template_for(layout, type, "layout")
+      end
+      
       raise TemplateNotFound, "No layout found at #{template_location}" unless template_method
       template_method
 
@@ -454,7 +461,7 @@ module Merb::RenderMixin
   # String:: The method, if it exists. Otherwise return nil.
   #
   # :api: private
-  def _template_method_for(template_location, locals)
+  def _template_method_for(template_location, locals = [])
     meth = Merb::Template.template_for(template_location, [], locals)
     meth && self.respond_to?(meth) ? meth : nil
   end
