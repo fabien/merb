@@ -64,7 +64,7 @@ module Merb
           options, slice_module = slice_module.merge(options), nil if slice_module.is_a?(Hash)
           slice_module ||= self.name.split('::').first
           options[:templates_for] = :view unless options.key?(:templates_for)
-          if slice_mod = Merb::Slices[slice_module.to_s]
+          if slice_mod = Merb::Slices[slice_module.to_s]            
             # Include the instance methods
             unless self.kind_of?(Merb::Slices::ControllerMixin::MixinMethods)
               self.send(:extend, Merb::Slices::ControllerMixin::MixinMethods)
@@ -78,6 +78,15 @@ module Merb
               self._template_roots = []
               # app-level app/views directory for shared and fallback views, layouts and partials
               self._template_roots << [join_template_path(Merb.dir_for(options[:templates_for]), options[:path]), :_template_location] if Merb.dir_for(options[:templates_for])
+              # optional other slices to look for - fall back to the templates of other slices
+              if options[:templates_from]
+                Array(options[:templates_from]).reverse.each do |other_slice_mod|
+                  # slice-level app/views for the standard supplied views
+                  self._template_roots << [join_template_path(other_slice_mod.dir_for(options[:templates_for]), options[:path]), :_slice_template_location] 
+                  # app-level slices/<slice>/app/views for specific overrides
+                  self._template_roots << [join_template_path(other_slice_mod.app_dir_for(options[:templates_for]), options[:path]), :_slice_template_location]                  
+                end
+              end              
               # slice-level app/views for the standard supplied views
               self._template_roots << [self._template_root, :_slice_template_location] 
               # app-level slices/<slice>/app/views for specific overrides

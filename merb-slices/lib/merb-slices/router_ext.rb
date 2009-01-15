@@ -38,7 +38,7 @@ Merb::Router.extensions do
     if Merb::Slices.exists?(slice_module)
       options = { :path => options } if options.is_a?(String)
       slice_module = Object.full_const_get(slice_module.to_s.camel_case) if slice_module.class.in?(String, Symbol)
-      namespace = options[:namespace] || slice_module.identifier_sym
+      namespace = options[:namespace] || slice_module[:namespace] || slice_module.identifier_sym
       options[:path] ||= options[:path_prefix] || slice_module[:path_prefix] || options[:namespace] || slice_module.identifier
       options[:prepend_routes] = block if block_given?
       slice_module[:path_prefix] = options[:path]
